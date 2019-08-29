@@ -340,7 +340,7 @@ def createListFiles(data_dir, src_name, dest_name):
     ind = os.path.join(dest_dir, 'index.txt')
     with open(ind, 'w') as f:
         for k, v in classind.items():
-            f.write()
+            f.write('{}'.format(v) + ' ' + k + '\n')
 
     train_list = os.path.join(dest_dir, 'train.txt')
     test_list = os.path.join(dest_dir, 'test.txt')
@@ -348,9 +348,9 @@ def createListFiles(data_dir, src_name, dest_name):
     with open(train_list, 'w') as tr, open(test_list, 'w') as ts:
         for fol in classind.keys():
             data_path = os.path.join(src_dir, fol)
-            data_list = os.listfir(data_path)
+            data_list = os.listdir(data_path)
             for i, fil in enumerate(data_list):
-                file_path = ps.path.join(fol, fil)
+                file_path = os.path.join(fol, fil)
                 #divid the data into train and test
                 #the division can be defined here
                 if i < 3:
@@ -362,13 +362,13 @@ def createListFiles(data_dir, src_name, dest_name):
 sequence_length = 10
 image_size = (216, 216, 3)
 
-data_dir = 'C:\\Users\\Reem\\Projects\\Movie-genre-recogntion-test\\data'
+data_dir = 'C:\\Users\\Reem\\Projects\\movie-genre-recognition\\data'
 #data_dir = '/home/changan/ActionRecognition/data'
 list_name = 'videoTrainTestlist'
 movie_name = 'Movie-dataset'
 frames_dir = os.path.join(data_dir, 'frames/mean.npy')
 
-createListFiles(data_dir, movie_dir, list_dir)
+createListFiles(data_dir, movie_name, list_name)
 
 list_dir = os.path.join(data_dir, list_name)
 # add index number to testlist file
@@ -381,5 +381,6 @@ testdest_dir = os.path.join(list_dir, 'testlist.txt')
 preprocess_listtxt(list_dir, index_dir, traintxt_dir, traindest_dir)
 preprocess_listtxt(list_dir, index_dir, testtxt_dir, testdest_dir)
 
+movie_dir = os.path.join(data_dir, movie_name)
 
-regenerate_data(data_dir, list_dir, Movie_dir)
+regenerate_data(data_dir, list_dir, movie_dir)
