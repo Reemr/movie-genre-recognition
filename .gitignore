@@ -1,3 +1,4 @@
 *.pyc
 data/
 *.h5
+/logs
