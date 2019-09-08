@@ -227,7 +227,7 @@ def preprocessing(list_dir, Movie_dir, dest_dir, seq_len, img_size, overwrite=Fa
     else:
         mean = None
 
-    print('Preprocessing UCF data ...')
+    print('Preprocessing Movie data ...')
     for clip_list, sub_dir in [(trainlist, train_dir), (testlist, test_dir)]:
     #for clip_list, sub_dir in [(trainlist, train_dir)]:
         for clip in clip_list:
@@ -291,14 +291,14 @@ def regenerate_data(data_dir, list_dir, Movie_dir):
     sequence_length = 10
     image_size = (216, 216, 3)
 
-    dest_dir = os.path.join(data_dir, 'Movie-Preprocessed-OF')
+    dest_dir_pre = os.path.join(data_dir, 'Movie-Preprocessed-OF')
     # generate sequence for optical flow
-    preprocessing(list_dir, Movie_dir, dest_dir, sequence_length, image_size, overwrite=True, normalization=False,
+    preprocessing(list_dir, Movie_dir, dest_dir_pre, sequence_length, image_size, overwrite=True, normalization=False,
                   mean_subtraction=False, horizontal_flip=False, random_crop=True, consistent=True, continuous_seq=True)
 
     # compute optical flow data
-    src_dir = 'C:\\Users\\Reem\\Projects\\Movie-genre-recogntion-test\\data\\Movie-Preprocessed-OF'
-    dest_dir = 'C:\\Users\\Reem\\Projects\\Movie-genre-recogntion-test\\data\\OF_data'
+    src_dir = dest_dir_pre
+    dest_dir = os.path.join(data_dir, 'OF_data')
     optical_flow_prep(src_dir, dest_dir, mean_sub=True, overwrite=True)
 
     elapsed_time = time.time() - start_time
@@ -359,28 +359,31 @@ def createListFiles(data_dir, src_name, dest_name):
                     ts.write(file_path + '\n')
 
 
-sequence_length = 10
-image_size = (216, 216, 3)
+if __name__ == '__main__':
 
-data_dir = 'C:\\Users\\Reem\\Projects\\movie-genre-recognition\\data'
-#data_dir = '/home/changan/ActionRecognition/data'
-list_name = 'videoTrainTestlist'
-movie_name = 'Movie-dataset'
-frames_dir = os.path.join(data_dir, 'frames/mean.npy')
+    sequence_length = 10
+    image_size = (216, 216, 3)
 
-createListFiles(data_dir, movie_name, list_name)
+    data_dir = 'C:\\Users\\Reem\\Projects\\movie-genre-recognition\\data'
 
-list_dir = os.path.join(data_dir, list_name)
-# add index number to testlist file
-index_dir = os.path.join(list_dir, 'index.txt')
-traintxt_dir = os.path.join(list_dir, 'train.txt')
-traindest_dir = os.path.join(list_dir, 'trainlist.txt')
-testtxt_dir = os.path.join(list_dir, 'test.txt')
-testdest_dir = os.path.join(list_dir, 'testlist.txt')
+    list_name = 'videoTrainTestlist'
+    movie_dir_name = 'Movie-dataset'
+    frames_dir = os.path.join(data_dir, 'frames\\mean.npy')
 
-preprocess_listtxt(list_dir, index_dir, traintxt_dir, traindest_dir)
-preprocess_listtxt(list_dir, index_dir, testtxt_dir, testdest_dir)
+    createListFiles(data_dir, movie_dir_name, list_name)
 
-movie_dir = os.path.join(data_dir, movie_name)
+    list_dir = os.path.join(data_dir, list_name)
 
-regenerate_data(data_dir, list_dir, movie_dir)
+    # add index number to testlist file
+    index_dir = os.path.join(list_dir, 'index.txt')
+    traintxt_dir = os.path.join(list_dir, 'train.txt')
+    traindest_dir = os.path.join(list_dir, 'trainlist.txt')
+    testtxt_dir = os.path.join(list_dir, 'test.txt')
+    testdest_dir = os.path.join(list_dir, 'testlist.txt')
+
+    preprocess_listtxt(list_dir, index_dir, traintxt_dir, traindest_dir)
+    preprocess_listtxt(list_dir, index_dir, testtxt_dir, testdest_dir)
+
+    movie_dir = os.path.join(data_dir, movie_dir_name)
+
+    regenerate_data(data_dir, list_dir, movie_dir)
