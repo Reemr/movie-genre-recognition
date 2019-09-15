@@ -7,6 +7,7 @@ import shutil
 import time
 import warnings
 from collections import OrderedDict
+import concurrent.futures
 
 
 def optical_flow_prep(src_dir, dest_dir, mean_sub=True, overwrite=False):
@@ -191,12 +192,12 @@ def process_clip(src_dir, dst_dir, seq_len, img_size, mean=None, normalization=T
 
     cap.release()
 
-def preprocessing(list_dir, Movie_dir, dest_dir, seq_len, img_size, overwrite=False, normalization=True,
+def preprocessing(list_dir, movie_dir, dest_dir, seq_len, img_size, overwrite=False, normalization=True,
                   mean_subtraction=True, horizontal_flip=True, random_crop=True, consistent=True, continuous_seq=False):
     '''
     Extract video data to sequence of fixed length, and save it in npy file
     :param list_dir:
-    :param UCF_dir:
+    :param Movie_dir:
     :param dest_dir:
     :param seq_len:
     :param img_size:
@@ -222,14 +223,14 @@ def preprocessing(list_dir, Movie_dir, dest_dir, seq_len, img_size, overwrite=Fa
     os.mkdir(train_dir)
     os.mkdir(test_dir)
     if mean_subtraction:
-        mean = calc_mean(Movie_dir, img_size).astype(dtype='float16')
+        mean = calc_mean(movie_dir, img_size).astype(dtype='float16')
         np.save(os.path.join(dest_dir, 'mean.npy'), mean)
     else:
         mean = None
 
     print('Preprocessing Movie data ...')
     for clip_list, sub_dir in [(trainlist, train_dir), (testlist, test_dir)]:
-    #for clip_list, sub_dir in [(trainlist, train_dir)]:
+
         for clip in clip_list:
             clip_name = os.path.basename(clip)
             #print("clip name = " + clip_name)
@@ -238,7 +239,7 @@ def preprocessing(list_dir, Movie_dir, dest_dir, seq_len, img_size, overwrite=Fa
             category_dir = os.path.join(sub_dir, clip_category)
             #print("sub dir = " + sub_dir)
             #print("category dir = " + category_dir)
-            src_dir = os.path.join(Movie_dir, clip)
+            src_dir = os.path.join(movie_dir, clip)
             #print("source = "+src_dir)
             dst_dir = os.path.join(category_dir, clip_name)
             #print("destination = "+dst_dir)
@@ -247,13 +248,14 @@ def preprocessing(list_dir, Movie_dir, dest_dir, seq_len, img_size, overwrite=Fa
                 os.mkdir(category_dir)
             process_clip(src_dir, dst_dir, seq_len, img_size, mean=mean, normalization=normalization, horizontal_flip=horizontal_flip,
                          random_crop=random_crop, consistent=consistent, continuous_seq=continuous_seq)
+
     print('Preprocessing done ...')
 
 
-def calc_mean(UCF_dir, img_size):
+def calc_mean(movie_dir, img_size):
     frames = []
     print('Calculating RGB mean ...')
-    for dirpath, dirnames, filenames in os.walk(UCF_dir):
+    for dirpath, dirnames, filenames in os.walk(movie_dir):
         for filename in filenames:
             path = os.path.join(dirpath, filename)
             if os.path.exists(path):
@@ -305,7 +307,12 @@ def regenerate_data(data_dir, list_dir, Movie_dir):
     print('Regenerating data takes:', int(elapsed_time / 60), 'minutes')
 
 
-def preprocess_listtxt(list_dir, index_dir, txt_dir, dest_dir):
+def preprocess_listtxt(list_dir, index, txt, txt_dest):
+
+    index_dir = os.path.join(list_dir, index)
+    txt_dir = os.path.join(list_dir, txt)
+    dest_dir = os.path.join(list_dir, txt_dest)
+
     class_dict = dict()
     with open(index_dir) as fo:
         for line in fo:
@@ -349,11 +356,15 @@ def createListFiles(data_dir, src_name, dest_name):
         for fol in classind.keys():
             data_path = os.path.join(src_dir, fol)
             data_list = os.listdir(data_path)
+
+            data_list_size = len(data_list)
+            div = round(0.8 * data_list_size)
+
             for i, fil in enumerate(data_list):
                 file_path = os.path.join(fol, fil)
                 #divid the data into train and test
                 #the division can be defined here
-                if i < 3:
+                if i < div:
                     tr.write(file_path + '\n')
                 else:
                     ts.write(file_path + '\n')
@@ -364,26 +375,20 @@ if __name__ == '__main__':
     sequence_length = 10
     image_size = (216, 216, 3)
 
-    data_dir = 'C:\\Users\\Reem\\Projects\\movie-genre-recognition\\data'
+    data_dir = os.path.join(os.getcwd(), 'data')
+    list_dir = os.path.join(data_dir, 'videoTrainTestlist')
+    movie_dir = os.path.join(data_dir, 'Movie-dataset')
 
-    list_name = 'videoTrainTestlist'
-    movie_dir_name = 'Movie-dataset'
-    frames_dir = os.path.join(data_dir, 'frames\\mean.npy')
+    #frames_dir = os.path.join(data_dir, 'frames\\mean.npy')
 
-    createListFiles(data_dir, movie_dir_name, list_name)
-
-    list_dir = os.path.join(data_dir, list_name)
+    #createListFiles(data_dir, movie_dir_name, list_name)
 
     # add index number to testlist file
-    index_dir = os.path.join(list_dir, 'index.txt')
-    traintxt_dir = os.path.join(list_dir, 'train.txt')
-    traindest_dir = os.path.join(list_dir, 'trainlist.txt')
-    testtxt_dir = os.path.join(list_dir, 'test.txt')
-    testdest_dir = os.path.join(list_dir, 'testlist.txt')
+    #index = 'index.txt'
 
-    preprocess_listtxt(list_dir, index_dir, traintxt_dir, traindest_dir)
-    preprocess_listtxt(list_dir, index_dir, testtxt_dir, testdest_dir)
+    #preprocess_listtxt(list_dir, index, 'train.txt', 'trainlist.txt')
+    #preprocess_listtxt(list_dir, index, 'test.txt', 'testlist.txt')
 
-    movie_dir = os.path.join(data_dir, movie_dir_name)
+
 
     regenerate_data(data_dir, list_dir, movie_dir)
