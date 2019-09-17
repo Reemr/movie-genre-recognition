@@ -15,7 +15,7 @@ def extract_frames(src, dst):
         if not succ:
             break
         if frame.any():
-            frame_res = cv2.resize(frame, (216,216,3))
+            frame_res = cv2.resize(frame, (216,216))
             np.save(dst+'_%d'%frame_pos, frame_res)
 
     cap.release()
@@ -37,7 +37,9 @@ def process_videos(list_dir, movie_dir, dest_dir, txt, train_test_dir):
     datalist = get_list_videos(list_dir, txt)
 
     sub_dir = os.path.join(dest_dir, train_test_dir)
-    os.mkdir(sub_dir)
+
+    if not os.path.exists(sub_dir):
+        os.mkdir(sub_dir)
 
     start_time = time.time()
     print("Extracting frames...")
@@ -66,5 +68,5 @@ if __name__ == "__main__":
     test_txt = 'test.txt'
     test = 'test'
 
-    process_videos(list_dir, movie_dir, dest_dir, train_txt, train)
+    #process_videos(list_dir, movie_dir, dest_dir, train_txt, train)
     #process_videos(list_dir, movie_dir, dest_dir, test_txt, test)

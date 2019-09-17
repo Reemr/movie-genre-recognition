@@ -8,8 +8,8 @@ from keras.models import Model
 from keras.layers.merge import Average, Maximum, Add
 from keras.applications.resnet50 import ResNet50
 
-CLASSES = 4
-IMG_SIZE = (216,216)
+CLASSES = 5
+IMG_SIZE = (216,216,3)
 SEQ = 10
 BATCH_SIZE = 28
 
@@ -32,9 +32,9 @@ def RNN(in_shape), weights_dir):
     return model
 '''
 
-def finetuned_resnet(include_top, weights_dir, in_shape):
+def finetuned_resnet(include_top, weights_dir):
 
-    base_model = ResNet50(include_top=False, weights='imagenet', input_shape=in_shape)
+    base_model = ResNet50(include_top=False, weights='imagenet', input_shape=IMG_SIZE)
     for layer in base_model.layers:
         layer.trainable = False
 

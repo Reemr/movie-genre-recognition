@@ -3,11 +3,64 @@ import numpy as np
 import random
 import scipy.misc
 
+def get_class_index(list_dir):
+    class_index = dict()
+    class_dir = os.path.join(list_dir, 'index.txt')
+    with open(class_dir) as fo:
+        for line in fo:
+            class_number, class_name = line.split()
+            class_number = int(class_number)
+            class_index[class_name] = class_number
+    return class_index
+
+def get_data(list_dir):
+    train_list_dir = os.path.join(list_dir, 'list_train_data2.txt')
+    test_list_dir = os.path.join(list_dir, 'list_test_data2.txt')
+
+    class_index = dict()
+    class_dir = os.path.join(list_dir, 'index.txt')
+    with open(class_dir) as fo:
+        for line in fo:
+            class_number, class_name = line.split()
+            class_number = int(class_number)
+            class_index[class_name] = class_number
+
+    train_data = []
+
+    count=0
+    with open(train_list_dir) as trainlist:
+        for i, clip in enumerate(trainlist):
+            clip_class = os.path.basename(os.path.dirname(clip))
+            train_data.append((clip, class_index[clip_class]))
+            count+=1
+            if count < 5:
+                print(clip_class)
+
+    test_data = []
+    with open(test_list_dir) as testlist:
+        for i, clip in enumerate(testlist):
+            clip_class = os.path.basename(os.path.dirname(clip))
+            test_data.append((clip, class_index[clip_class]))
+
+    return train_data, test_data
+
+'''
+def frame_generator(data_dir, batch_size):
+
+    class_index = get_class_index()
+
+    while True:
+
+
+
+        yield
+'''
 
 def seq_generator(datalist, batch_size, input_shape, num_classes):
 
     x_shape = (batch_size,) + input_shape
     y_shape = (batch_size, num_classes)
+    index = 0
 
     while True:
         batch_x = np.ndarray(x_shape)
@@ -30,7 +83,7 @@ def seq_generator(datalist, batch_size, input_shape, num_classes):
             clip_data = np.load(clip_dir)
             if clip_data.shape != batch_x.shape[1:]:
                 raise ValueError('The number of time sequence is nconsistent with the video data')
-            batch_x[i] = clip_Data
+            batch_x[i] = clip_data
 
         yield batch_x, batch_y
 
@@ -40,7 +93,7 @@ def img_generator(data_list, batch_size, input_shape, num_classes):
     batch_image_shape = (batch_size,) + input_shape[1:]
     batch_image = np.ndarray(batch_image_shape)
 
-    video_gen = sequence_generator(data_list, batch_size, input_shape, num_classes)
+    video_gen = seq_generator(data_list, batch_size, input_shape, num_classes)
 
     while True:
         batch_video, batch_label = next(video_gen)
@@ -79,7 +132,7 @@ def get_data_list(list_dir, video_dir):
             trainlist.append(line[:line.rfind(' ')])
 
     class_index = dict()
-    class_dir = os.path.join(list_dir, 'classInd.txt')
+    class_dir = os.path.join(list_dir, 'index.txt')
     with open(class_dir) as fo:
         for line in fo:
             class_number, class_name = line.split()
@@ -100,4 +153,13 @@ def get_data_list(list_dir, video_dir):
 
     return train_data, test_data, class_index
 
-if __name__ == "__main__":
+if __name__ == '__main__':
+
+    data_dir = os.path.join(os.getcwd(), 'data')
+    list_dir = os.path.join(data_dir, 'videoTrainTestlist')
+    src_dir = os.path.join(data_dir, 'Movie-dataset-preprocessed')
+
+    r,s = get_data(list_dir)
+
+    print(len(r))
+    print(len(s))
